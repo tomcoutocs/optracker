@@ -55,12 +55,13 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
 
    **Run sync once per day** so the card list stays up to date:
 
-   - **Vercel:** Create `vercel.json` in the project root with:
-     ```json
-     { "crons": [{ "path": "/api/sync-cards", "schedule": "0 6 * * *" }] }
-     ```
-     (Runs at 06:00 UTC daily.) Set `CRON_SECRET` in Vercel project env; Vercel will send it when invoking the cron.
-   - **Other:** Use a cron job or scheduler (GitHub Actions, etc.) to `POST /api/sync-cards` with the secret header once per day.
+   - **Vercel (recommended):** The repo includes a cron in `vercel.json` that runs **daily at 5:00 AM EST** (10:00 UTC). To enable it:
+     1. In the [Vercel Dashboard](https://vercel.com/dashboard), open your project.
+     2. Go to **Settings → Environment Variables**.
+     3. Add **CRON_SECRET**: name `CRON_SECRET`, value = a long random string (e.g. from `openssl rand -hex 32`). Add it for Production (and Preview if you want cron in preview).
+     4. Redeploy the project (or push a commit) so the cron is active. Vercel will call `GET /api/sync-cards` at 5am EST and send `Authorization: Bearer <CRON_SECRET>` automatically.
+     - Schedule is in UTC: `0 10 * * *` = 10:00 UTC = 5am EST. For 5am EDT use `0 9 * * *`.
+   - **Other hosts:** Use a cron or scheduler to `POST /api/sync-cards` with header `Authorization: Bearer <CRON_SECRET>` (or `x-cron-secret`) once per day.
 
 ## File structure
 
