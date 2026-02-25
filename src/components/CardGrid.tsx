@@ -15,14 +15,20 @@ interface CardGridProps {
   cards: ApiCard[];
   onAdd: (card: ApiCard) => void;
   layout?: "grid" | "list";
+  quantityByCardId?: Record<string, number>;
 }
 
-export function CardGrid({ cards, onAdd, layout = "grid" }: CardGridProps) {
+export function CardGrid({ cards, onAdd, layout = "grid", quantityByCardId = {} }: CardGridProps) {
   if (layout === "list") {
     return (
       <ul className="space-y-2">
         {cards.map((card) => (
-          <CardRow key={String(card.id)} card={card} onAdd={() => onAdd(card)} />
+          <CardRow
+            key={String(card.id)}
+            card={card}
+            onAdd={() => onAdd(card)}
+            quantity={quantityByCardId[String(card.id)]}
+          />
         ))}
       </ul>
     );
@@ -30,10 +36,12 @@ export function CardGrid({ cards, onAdd, layout = "grid" }: CardGridProps) {
 
   return (
     <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {cards.map((card) => (
+      {cards.map((card) => {
+        const quantity = quantityByCardId[String(card.id)];
+        return (
         <li key={String(card.id)} className="group">
           <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/40">
-            <div className="aspect-[3/4] relative bg-muted">
+            <div className="aspect-[63/88] relative bg-muted">
               {card.image ? (
                 <Image
                   src={card.image}
@@ -48,6 +56,11 @@ export function CardGrid({ cards, onAdd, layout = "grid" }: CardGridProps) {
                   No image
                 </div>
               )}
+              {quantity != null && quantity > 0 && (
+                <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
+                  {quantity}
+                </span>
+              )}
             </div>
             <CardContent className="p-3">
               <p className="font-medium text-sm truncate" title={card.name}>
@@ -55,6 +68,9 @@ export function CardGrid({ cards, onAdd, layout = "grid" }: CardGridProps) {
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {card.episode?.code ?? "—"} · {card.rarity}
+                {quantity != null && quantity > 0 && (
+                  <> · In inventory: {quantity}</>
+                )}
               </p>
               <p className="text-xs text-muted-foreground capitalize">{card.color}</p>
               {(card.market_price != null || card.inventory_price != null) && (
@@ -73,7 +89,8 @@ export function CardGrid({ cards, onAdd, layout = "grid" }: CardGridProps) {
             </CardContent>
           </Card>
         </li>
-      ))}
+      );
+      })}
     </ul>
   );
 }

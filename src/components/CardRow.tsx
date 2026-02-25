@@ -45,6 +45,9 @@ export function CardRow({ card, onAdd, quantity }: CardRowProps) {
           <p className="font-medium text-sm truncate">{card.name}</p>
           <p className="text-xs text-muted-foreground">
             {card.episode?.code ?? "—"} · {card.rarity} · {card.color}
+            {quantity != null && quantity > 0 && (
+              <> · In inventory: {quantity}</>
+            )}
             {(card.market_price != null || card.inventory_price != null) && (
               <> · ${(card.market_price ?? card.inventory_price ?? 0).toFixed(2)}</>
             )}

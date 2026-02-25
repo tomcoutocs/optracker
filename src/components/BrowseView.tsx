@@ -14,6 +14,7 @@ import { useCards } from "@/hooks/useCards";
 import { useEpisodes } from "@/hooks/useEpisodes";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useAddCard } from "@/hooks/useAddCard";
+import { useInventory } from "@/hooks/useInventory";
 import type { ApiCard } from "@/types";
 
 const DEBOUNCE_MS = 300;
@@ -44,6 +45,12 @@ export function BrowseView() {
   const { data: episodes = [] } = useEpisodes();
   const { data: filterOptions } = useFilterOptions();
   const addCardMutation = useAddCard();
+  const { data: inventory = [] } = useInventory();
+
+  const quantityByCardId = inventory.reduce<Record<string, number>>((acc, inv) => {
+    acc[inv.card_id] = (acc[inv.card_id] ?? 0) + inv.quantity;
+    return acc;
+  }, {});
 
   const rarities = filterOptions?.rarities ?? [];
   const colors = filterOptions?.colors ?? [];
@@ -99,6 +106,7 @@ export function BrowseView() {
           cards={filteredCards}
           onAdd={setAddCard}
           layout={layout}
+          quantityByCardId={quantityByCardId}
         />
       )}
 

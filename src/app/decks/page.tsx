@@ -4,7 +4,8 @@
  * Deck Builder: list decks, create/edit, add/remove cards, have vs need, total price.
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -13,6 +14,7 @@ import {
   useCreateDeck,
   useUpdateDeck,
   useDeleteDeck,
+  useSetDeckActive,
   type DeckCardEntry,
 } from "@/hooks/useDecks";
 import { useInventoryCards } from "@/hooks/useInventoryCards";
@@ -30,7 +32,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Loader2, FileDown, FileUp } from "lucide-react";
+import { Plus, Trash2, Loader2, FileDown, FileUp, Star } from "lucide-react";
 
 const DEBOUNCE_MS = 300;
 
@@ -65,7 +67,7 @@ async function fetchCardsBatch(ids: string[]): Promise<ApiCard[]> {
   return all;
 }
 
-export default function DecksPage() {
+function DecksPageContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deckName, setDeckName] = useState("");
   const [deckCards, setDeckCards] = useState<DeckCardEntry[]>([]);
@@ -84,7 +86,16 @@ export default function DecksPage() {
   const createDeck = useCreateDeck();
   const updateDeck = useUpdateDeck(selectedId);
   const deleteDeck = useDeleteDeck();
+  const setDeckActive = useSetDeckActive();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const deckId = searchParams.get("deck");
+    if (deckId && decks.some((d) => d.id === deckId)) {
+      setSelectedId(deckId);
+    }
+  }, [searchParams, decks]);
 
   useEffect(() => {
     const t = setTimeout(() => setAddCardDebounced(addCardSearch), DEBOUNCE_MS);
@@ -279,49 +290,65 @@ export default function DecksPage() {
             )}
             <ul className="space-y-2">
               {decks.map((d) => (
-                <li key={d.id}>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(d.id)}
-                      className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex flex-col gap-1.5 hover:bg-muted"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`relative w-9 h-12 shrink-0 rounded overflow-hidden bg-muted ${
-                            selectedId === d.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
-                          }`}
-                        >
-                          {d.leader_image ? (
-                            <Image
-                              src={d.leader_image}
-                              alt=""
-                              fill
-                              className="object-cover"
-                              sizes="36px"
-                            />
-                          ) : (
-                            <span className="text-xs text-muted-foreground flex items-center justify-center h-full">—</span>
-                          )}
-                        </div>
-                        <span className="min-w-0 truncate flex-1">
-                          {d.name}
-                          {typeof d.card_count === "number" && (
-                            <span className="opacity-80 ml-1">({d.card_count})</span>
-                          )}
+                <li key={d.id} className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(d.id)}
+                    className="flex-1 text-left px-3 py-2 rounded-md text-sm transition-colors flex flex-col gap-1.5 hover:bg-muted min-w-0"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`relative w-9 h-12 shrink-0 rounded overflow-hidden bg-muted ${
+                          selectedId === d.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+                        }`}
+                      >
+                        {d.leader_image ? (
+                          <Image
+                            src={d.leader_image}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="36px"
+                          />
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center justify-center h-full">—</span>
+                        )}
+                      </div>
+                      <span className="min-w-0 truncate flex-1">
+                        {d.name}
+                        {typeof d.card_count === "number" && (
+                          <span className="opacity-80 ml-1">({d.card_count})</span>
+                        )}
+                      </span>
+                    </div>
+                    {typeof d.card_count === "number" && d.card_count > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Progress
+                          value={Math.round(((d.owned_count ?? 0) / d.card_count) * 100)}
+                          className="h-1.5 flex-1"
+                        />
+                        <span className="text-xs opacity-80 shrink-0">
+                          {d.owned_count ?? 0}/{d.card_count}
                         </span>
                       </div>
-                      {typeof d.card_count === "number" && d.card_count > 0 && (
-                        <div className="flex items-center gap-2">
-                          <Progress
-                            value={Math.round(((d.owned_count ?? 0) / d.card_count) * 100)}
-                            className="h-1.5 flex-1"
-                          />
-                          <span className="text-xs opacity-80 shrink-0">
-                            {d.owned_count ?? 0}/{d.card_count}
-                          </span>
-                        </div>
-                      )}
-                    </button>
+                    )}
+                  </button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeckActive.mutate({ id: d.id, isActive: !(d.is_active ?? false) });
+                    }}
+                    disabled={setDeckActive.isPending}
+                    title={d.is_active ? "Active – cards show in inventory" : "Mark as active"}
+                  >
+                    <Star
+                      className={`h-4 w-4 ${d.is_active ? "fill-amber-400 text-amber-500" : "text-muted-foreground"}`}
+                    />
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -417,9 +444,9 @@ export default function DecksPage() {
                                   <p className="font-medium text-sm truncate">{card?.name ?? entry.card_id}</p>
                                   <p className="text-xs text-muted-foreground">
                                     {have >= need ? (
-                                      <span className="text-green-600 dark:text-green-400">You have {have} (need {need})</span>
+                                      <span className="text-green-600 dark:text-green-400">{have}/{need}</span>
                                     ) : (
-                                      <span className="text-amber-600 dark:text-amber-400">Have {have} / need {need}</span>
+                                      <span className="text-amber-600 dark:text-amber-400">{have}/{need}</span>
                                     )}
                                     {" · "}
                                     ${lineTotal.toFixed(2)}
@@ -543,5 +570,13 @@ export default function DecksPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function DecksPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-24"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+      <DecksPageContent />
+    </Suspense>
   );
 }

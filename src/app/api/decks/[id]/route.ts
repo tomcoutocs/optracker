@@ -17,7 +17,7 @@ export async function GET(
   try {
     const { data: deck, error: deckError } = await supabase
       .from("decks")
-      .select("id, name, created_at, updated_at")
+      .select("id, name, created_at, updated_at, is_active")
       .eq("id", id)
       .single();
     if (deckError || !deck) {
@@ -50,10 +50,17 @@ export async function PATCH(
   try {
     const body = await request.json().catch(() => ({}));
 
+    const updates: { name?: string; is_active?: boolean } = {};
     if (typeof body.name === "string" && body.name.trim()) {
+      updates.name = body.name.trim();
+    }
+    if (typeof body.is_active === "boolean") {
+      updates.is_active = body.is_active;
+    }
+    if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase
         .from("decks")
-        .update({ name: body.name.trim() })
+        .update(updates)
         .eq("id", id);
       if (updateError) throw updateError;
     }
@@ -75,7 +82,7 @@ export async function PATCH(
 
     const { data: deck, error: fetchError } = await supabase
       .from("decks")
-      .select("id, name, created_at, updated_at")
+      .select("id, name, created_at, updated_at, is_active")
       .eq("id", id)
       .single();
     if (fetchError) throw fetchError;

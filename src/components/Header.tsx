@@ -19,6 +19,7 @@ const navItems = [
   { href: "/", label: "Browse" },
   { href: "/inventory", label: "Inventory" },
   { href: "/decks", label: "Decks" },
+  { href: "/users", label: "Users" },
 ] as const;
 
 export function Header() {
@@ -89,6 +90,9 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">Profile</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out

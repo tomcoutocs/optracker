@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useInventoryCards } from "@/hooks/useInventoryCards";
+import { useActiveDeckCards } from "@/hooks/useActiveDeckCards";
 import { useEpisodes } from "@/hooks/useEpisodes";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
 import { useEpisodeCounts } from "@/hooks/useEpisodeCounts";
@@ -27,6 +28,7 @@ export default function InventoryPage() {
   const [rarity, setRarity] = useState("");
   const [color, setColor] = useState("");
   const { items, isLoading, isError, error } = useInventoryCards();
+  const { data: decksByCard = {} } = useActiveDeckCards();
   const { data: episodes = [] } = useEpisodes();
   const { data: episodeCounts = [] } = useEpisodeCounts();
   const { data: filterOptions } = useFilterOptions();
@@ -209,6 +211,7 @@ export default function InventoryPage() {
                           onIncrement={handleIncrement}
                           onDecrement={handleDecrement}
                           onRemove={handleRemove}
+                          decksByCard={decksByCard}
                         />
                       ) : (
                         <p className="py-6 text-center text-muted-foreground text-sm">

@@ -7,6 +7,7 @@ export interface DeckListItem {
   name: string;
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
   card_count?: number;
   owned_count?: number;
   leader_image?: string | null;
@@ -92,5 +93,25 @@ export function useDeleteDeck() {
       if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["decks"] }),
+  });
+}
+
+export function useSetDeckActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const res = await fetch(`/api/decks/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: isActive }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    },
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: ["decks"] });
+      qc.invalidateQueries({ queryKey: ["deck", id] });
+      qc.invalidateQueries({ queryKey: ["active-deck-cards"] });
+    },
   });
 }

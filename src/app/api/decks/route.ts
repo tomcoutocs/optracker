@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data: decks, error: decksError } = await supabase
       .from("decks")
-      .select("id, name, created_at, updated_at")
+      .select("id, name, created_at, updated_at, is_active")
       .order("updated_at", { ascending: false });
     if (decksError) throw decksError;
 

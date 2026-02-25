@@ -16,6 +16,7 @@ import {
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { InventoryCard } from "@/types";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -26,15 +27,18 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import type { ActiveDeckInfo } from "@/hooks/useActiveDeckCards";
 
 interface InventoryTableProps {
   items: InventoryCard[];
   onIncrement: (cardId: string) => void;
   onDecrement: (cardId: string) => void;
   onRemove: (cardId: string) => void;
+  /** Map of card_id -> decks containing this card (active decks only) */
+  decksByCard?: Record<string, ActiveDeckInfo[]>;
 }
 
-export function InventoryTable({ items, onIncrement, onDecrement, onRemove }: InventoryTableProps) {
+export function InventoryTable({ items, onIncrement, onDecrement, onRemove, decksByCard }: InventoryTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo<ColumnDef<InventoryCard>[]>(
@@ -63,9 +67,28 @@ export function InventoryTable({ items, onIncrement, onDecrement, onRemove }: In
         accessorFn: (row) => row.card.name,
         id: "name",
         header: "Name",
-        cell: ({ getValue }) => (
-          <span className="font-medium text-sm">{getValue() as string}</span>
-        ),
+        cell: ({ row, getValue }) => {
+          const cardId = row.original.inventory.card_id;
+          const decks = decksByCard?.[cardId] ?? [];
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className="font-medium text-sm">{getValue() as string}</span>
+              {decks.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {decks.map((deck) => (
+                    <Link
+                      key={deck.id}
+                      href={`/decks?deck=${deck.id}`}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      In deck: {deck.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorFn: (row) => row.card.episode?.code ?? "—",
@@ -148,7 +171,7 @@ export function InventoryTable({ items, onIncrement, onDecrement, onRemove }: In
         ),
       },
     ],
-    [onIncrement, onDecrement, onRemove]
+    [onIncrement, onDecrement, onRemove, decksByCard]
   );
 
   const table = useReactTable({
