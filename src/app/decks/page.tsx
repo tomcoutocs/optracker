@@ -67,6 +67,52 @@ async function fetchCardsBatch(ids: string[]): Promise<ApiCard[]> {
   return all;
 }
 
+function AddCardRow({ card, onAdd }: { card: ApiCard; onAdd: (qty: number) => void }) {
+  const [qty, setQty] = useState(1);
+  const handleClick = () => {
+    const n = Math.max(1, Math.min(99, qty));
+    onAdd(n);
+  };
+  return (
+    <li className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
+      <button
+        type="button"
+        onClick={handleClick}
+        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+      >
+        <div className="relative w-10 h-14 rounded overflow-hidden bg-muted shrink-0">
+          {card.image ? (
+            <Image src={card.image} alt={card.name} fill className="object-cover" sizes="40px" />
+          ) : (
+            <span className="text-xs flex items-center justify-center h-full">—</span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-sm truncate">{card.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {card.episode?.code ?? "—"} · {card.rarity}
+            {(card.market_price != null || card.inventory_price != null) && (
+              <> · ${(card.market_price ?? card.inventory_price ?? 0).toFixed(2)}</>
+            )}
+          </p>
+        </div>
+      </button>
+      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <span className="text-xs text-muted-foreground">Qty</span>
+        <Input
+          type="number"
+          min={1}
+          max={99}
+          value={qty}
+          className="w-14 h-8 text-center text-sm"
+          onChange={(e) => setQty(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
+          onKeyDown={(e) => e.key === "Enter" && handleClick()}
+        />
+      </div>
+    </li>
+  );
+}
+
 function DecksPageContent() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deckName, setDeckName] = useState("");
@@ -491,7 +537,7 @@ function DecksPageContent() {
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Add card to deck</DialogTitle>
-            <DialogDescription>Search and click a card to add it.</DialogDescription>
+            <DialogDescription>Search for a card, choose quantity, then click to add.</DialogDescription>
           </DialogHeader>
           <Input
             placeholder="Card name..."
@@ -504,30 +550,11 @@ function DecksPageContent() {
               <li className="text-sm text-muted-foreground py-4">No cards found.</li>
             )}
             {searchCards.map((card) => (
-              <li key={String(card.id)}>
-                <button
-                  type="button"
-                  onClick={() => handleAddCard(card)}
-                  className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted text-left"
-                >
-                  <div className="relative w-10 h-14 rounded overflow-hidden bg-muted shrink-0">
-                    {card.image ? (
-                      <Image src={card.image} alt={card.name} fill className="object-cover" sizes="40px" />
-                    ) : (
-                      <span className="text-xs flex items-center justify-center h-full">—</span>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{card.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {card.episode?.code ?? "—"} · {card.rarity}
-                      {(card.market_price != null || card.inventory_price != null) && (
-                        <> · ${(card.market_price ?? card.inventory_price ?? 0).toFixed(2)}</>
-                      )}
-                    </p>
-                  </div>
-                </button>
-              </li>
+              <AddCardRow
+                key={String(card.id)}
+                card={card}
+                onAdd={(qty) => handleAddCard(card, qty)}
+              />
             ))}
           </ul>
         </DialogContent>
