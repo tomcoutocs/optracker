@@ -67,13 +67,19 @@ export async function PATCH(
 
     if (Array.isArray(body.cards)) {
       await supabase.from("deck_cards").delete().eq("deck_id", id);
-      const rows = body.cards
-        .filter((c: unknown) => c && typeof c === "object" && typeof (c as { card_id?: string }).card_id === "string")
-        .map((c: { card_id: string; quantity?: number }) => ({
-          deck_id: id,
-          card_id: (c as { card_id: string }).card_id,
-          quantity: Math.max(1, Math.floor(Number((c as { quantity?: number }).quantity) || 1)),
-        }));
+      // Merge by card_id and sum quantities to avoid duplicates
+      const mergedByCard = new Map<string, number>();
+      for (const c of body.cards) {
+        if (!c || typeof c !== "object" || typeof (c as { card_id?: string }).card_id !== "string") continue;
+        const cardId = (c as { card_id: string }).card_id;
+        const qty = Math.max(1, Math.floor(Number((c as { quantity?: number }).quantity) || 1));
+        mergedByCard.set(cardId, (mergedByCard.get(cardId) ?? 0) + qty);
+      }
+      const rows = Array.from(mergedByCard.entries()).map(([card_id, quantity]) => ({
+        deck_id: id,
+        card_id,
+        quantity,
+      }));
       if (rows.length > 0) {
         const { error: insertError } = await supabase.from("deck_cards").insert(rows);
         if (insertError) throw insertError;

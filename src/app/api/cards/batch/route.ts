@@ -14,8 +14,9 @@ export async function GET(request: NextRequest) {
   if (ids.length === 0) {
     return NextResponse.json([]);
   }
-  if (ids.length > 100) {
-    return NextResponse.json({ error: "Max 100 ids" }, { status: 400 });
+  // Allow up to 2000 ids per request to support large inventories
+  if (ids.length > 2000) {
+    return NextResponse.json({ error: "Max 2000 ids per request" }, { status: 400 });
   }
   try {
     const cards = await getCardsByIdsFromDb(ids);

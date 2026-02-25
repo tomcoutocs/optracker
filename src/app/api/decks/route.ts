@@ -26,19 +26,29 @@ export async function GET(request: NextRequest) {
       .select("deck_id, card_id, quantity");
     if (dcError) throw dcError;
 
+    // Group deck_cards by (deck_id, card_id) and sum quantities to avoid overcounting duplicates
+    const mergedByDeckCard = new Map<string, Map<string, number>>();
+    for (const row of deckCardsRows ?? []) {
+      const r = row as { deck_id: string; card_id: string; quantity: number };
+      const qty = r.quantity ?? 1;
+      if (!mergedByDeckCard.has(r.deck_id)) mergedByDeckCard.set(r.deck_id, new Map());
+      const byCard = mergedByDeckCard.get(r.deck_id)!;
+      byCard.set(r.card_id, (byCard.get(r.card_id) ?? 0) + qty);
+    }
+
     const countByDeck = new Map<string, number>();
     const cardIdsByDeck = new Map<string, string[]>();
     const deckCardsByDeck = new Map<string, { card_id: string; quantity: number }[]>();
     const allCardIds = new Set<string>();
-    for (const row of deckCardsRows ?? []) {
-      const r = row as { deck_id: string; card_id: string; quantity: number };
-      const qty = r.quantity ?? 1;
-      countByDeck.set(r.deck_id, (countByDeck.get(r.deck_id) ?? 0) + qty);
-      if (!cardIdsByDeck.has(r.deck_id)) cardIdsByDeck.set(r.deck_id, []);
-      cardIdsByDeck.get(r.deck_id)!.push(r.card_id);
-      if (!deckCardsByDeck.has(r.deck_id)) deckCardsByDeck.set(r.deck_id, []);
-      deckCardsByDeck.get(r.deck_id)!.push({ card_id: r.card_id, quantity: qty });
-      allCardIds.add(r.card_id);
+    for (const [deckId, byCard] of mergedByDeckCard) {
+      for (const [cardId, qty] of byCard) {
+        countByDeck.set(deckId, (countByDeck.get(deckId) ?? 0) + qty);
+        if (!cardIdsByDeck.has(deckId)) cardIdsByDeck.set(deckId, []);
+        cardIdsByDeck.get(deckId)!.push(cardId);
+        if (!deckCardsByDeck.has(deckId)) deckCardsByDeck.set(deckId, []);
+        deckCardsByDeck.get(deckId)!.push({ card_id: cardId, quantity: qty });
+        allCardIds.add(cardId);
+      }
     }
 
     const inventoryByCard = new Map<string, number>();

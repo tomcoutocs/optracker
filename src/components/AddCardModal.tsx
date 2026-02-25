@@ -60,10 +60,10 @@ export function AddCardModal({ card, onClose, onSave, isPending }: AddCardModalP
 
   return (
     <Dialog open={!!card} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <DialogHeader className="min-w-0">
           <DialogTitle>Add to inventory</DialogTitle>
-          <DialogDescription className="truncate">{card?.name}</DialogDescription>
+          <DialogDescription className="break-words">{card?.name}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-2">

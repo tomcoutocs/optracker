@@ -14,13 +14,20 @@ export function useInventoryCards() {
   const { data: inventory = [], ...rest } = useInventory();
   const cardIds = inventory.map((r) => r.card_id);
 
+  const CHUNK_SIZE = 500;
   const cardsQuery = useQuery({
     queryKey: ["cards-batch", cardIds.join(",")],
     queryFn: async (): Promise<ApiCard[]> => {
       if (cardIds.length === 0) return [];
-      const res = await fetch(`/api/cards/batch?ids=${encodeURIComponent(cardIds.join(","))}`);
-      if (!res.ok) throw new Error(await res.text());
-      return res.json();
+      const all: ApiCard[] = [];
+      for (let i = 0; i < cardIds.length; i += CHUNK_SIZE) {
+        const chunk = cardIds.slice(i, i + CHUNK_SIZE);
+        const res = await fetch(`/api/cards/batch?ids=${encodeURIComponent(chunk.join(","))}`);
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        all.push(...(Array.isArray(data) ? data : []));
+      }
+      return all;
     },
     enabled: cardIds.length > 0,
     staleTime: 5 * 60 * 1000,
