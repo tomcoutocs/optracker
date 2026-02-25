@@ -75,7 +75,17 @@ export function useUserProfileData(username: string | null) {
         headers: { "Cache-Control": "no-cache" },
       });
       if (res.status === 404) throw new Error("Profile not found");
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const text = await res.text();
+        let message = text || `Request failed (${res.status})`;
+        try {
+          const body = JSON.parse(text) as { error?: string };
+          if (body.error) message = body.error;
+        } catch {
+          /* use text as message */
+        }
+        throw new Error(message);
+      }
       return res.json();
     },
     enabled: !!username,

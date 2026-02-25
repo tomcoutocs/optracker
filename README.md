@@ -31,6 +31,7 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
 
    - Copy `.env.example` to `.env.local`.
    - Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `RAPIDAPI_KEY`.
+   - Set `SUPABASE_SERVICE_ROLE_KEY` (from Supabase Dashboard → Project Settings → API → service_role key) to view other users' profiles (inventory, decks). Without it, other users' profiles will show empty.
 
 5. **Run**
 

@@ -88,7 +88,9 @@ function AddCardRow({ card, onAdd }: { card: ApiCard; onAdd: (qty: number) => vo
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-sm truncate">{card.name}</p>
+          <p className="font-medium text-sm truncate">
+            {card.card_number ? `${card.name} - ${card.card_number}` : card.name}
+          </p>
           <p className="text-xs text-muted-foreground">
             {card.episode?.code ?? "—"} · {card.rarity}
             {(card.market_price != null || card.inventory_price != null) && (
@@ -487,7 +489,11 @@ function DecksPageContent() {
                                   )}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-medium text-sm truncate">{card?.name ?? entry.card_id}</p>
+                                  <p className="font-medium text-sm truncate">
+                                    {card
+                                      ? `${card.name}${card.card_number ? ` - ${card.card_number}` : ` - ${entry.card_id}`}`
+                                      : entry.card_id}
+                                  </p>
                                   <p className="text-xs text-muted-foreground">
                                     {have >= need ? (
                                       <span className="text-green-600 dark:text-green-400">{have}/{need}</span>

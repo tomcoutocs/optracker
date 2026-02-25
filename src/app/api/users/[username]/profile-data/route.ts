@@ -2,6 +2,7 @@
  * GET /api/users/[username]/profile-data - full profile for viewing another user.
  * Returns profile, totalValue, recentCards, decks, inventoryItems.
  * Uses service role for inventory/decks so we can read another user's data (RLS restricts to own rows).
+ * Requires SUPABASE_SERVICE_ROLE_KEY in .env.local for viewing other users' profiles.
  */
 
 import { createServerClientFromRequest } from "@/lib/supabase/server-cookies";
@@ -14,9 +15,21 @@ export async function GET(
   { params }: { params: Promise<{ username: string }> }
 ) {
   const { supabase, applyCookies } = createServerClientFromRequest(request);
-  const admin = createServerClient();
   const { username } = await params;
   if (!username) return NextResponse.json({ error: "Username required" }, { status: 400 });
+
+  // Service role is required to read another user's inventory/decks (RLS restricts to own rows)
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      {
+        error:
+          "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local (from Supabase Dashboard → Project Settings → API → service_role key) to view other users' profiles.",
+      },
+      { status: 503 }
+    );
+  }
+
+  const admin = createServerClient();
 
   try {
     const { data: profile, error: profileError } = await supabase
