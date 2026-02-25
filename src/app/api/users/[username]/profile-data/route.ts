@@ -1,10 +1,11 @@
 /**
  * GET /api/users/[username]/profile-data - full profile for viewing another user.
  * Returns profile, totalValue, recentCards, decks, inventoryItems.
- * Requires RLS policies allowing authenticated users to read inventory/decks.
+ * Uses service role for inventory/decks so we can read another user's data (RLS restricts to own rows).
  */
 
 import { createServerClientFromRequest } from "@/lib/supabase/server-cookies";
+import { createServerClient } from "@/lib/supabase/server";
 import { getCardsByIdsFromDb } from "@/lib/db/cards";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,6 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ username: string }> }
 ) {
   const { supabase, applyCookies } = createServerClientFromRequest(request);
+  const admin = createServerClient();
   const { username } = await params;
   if (!username) return NextResponse.json({ error: "Username required" }, { status: 400 });
 
@@ -27,7 +29,8 @@ export async function GET(
     }
     const userId = profile.id;
 
-    const { data: invRows, error: invError } = await supabase
+    // Use service role to read another user's inventory (RLS restricts client to own rows only)
+    const { data: invRows, error: invError } = await admin
       .from("inventory")
       .select("*")
       .eq("user_id", userId)
@@ -52,7 +55,8 @@ export async function GET(
 
     const recentCards = inventoryItems.slice(0, 5);
 
-    const { data: decksRows, error: decksError } = await supabase
+    // Use service role to read another user's decks
+    const { data: decksRows, error: decksError } = await admin
       .from("decks")
       .select("id, name, created_at, updated_at, is_active")
       .eq("user_id", userId)
@@ -63,7 +67,7 @@ export async function GET(
     const deckIds = decks.map((d: { id: string }) => d.id);
     let decksWithMeta: Array<{ id: string; name: string; card_count: number; owned_count: number; leader_image: string | null }> = [];
     if (deckIds.length > 0) {
-      const { data: deckCardsRows } = await supabase
+      const { data: deckCardsRows } = await admin
         .from("deck_cards")
         .select("deck_id, card_id, quantity")
         .in("deck_id", deckIds);

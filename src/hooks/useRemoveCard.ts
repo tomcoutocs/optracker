@@ -19,10 +19,13 @@ export function useRemoveCard() {
   return useMutation({
     mutationFn: async (input: RemoveCardInput) => {
       const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
       const { data: row } = await supabase
         .from("inventory")
         .select("id, quantity")
         .eq("card_id", input.card_id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!row) return null;

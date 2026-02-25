@@ -13,9 +13,12 @@ import type { InventoryCard } from "@/types";
 
 async function fetchRecentInventory(limit: number): Promise<InventoryCard[]> {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
   const { data: inventory, error } = await supabase
     .from("inventory")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
