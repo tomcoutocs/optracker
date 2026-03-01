@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Bypass Vercel image optimization to avoid transformation quota usage.
+    // Images load directly from source (tcggo, optcgapi, Supabase).
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "images.tcggo.com", pathname: "/**" },
       { protocol: "https", hostname: "optcgapi.com", pathname: "/**" },
