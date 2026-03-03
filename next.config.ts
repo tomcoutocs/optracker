@@ -1,5 +1,8 @@
+import path from "path";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingRoot: path.join(__dirname),
   images: {
     // Bypass Vercel image optimization to avoid transformation quota usage.
     // Images load directly from source (tcggo, optcgapi, Supabase).

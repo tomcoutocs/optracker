@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(cards);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    if (process.env.NODE_ENV === "development") console.error("[api/cards/batch]", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

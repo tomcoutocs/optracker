@@ -12,6 +12,7 @@ export async function GET() {
     return NextResponse.json(episodes);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    if (process.env.NODE_ENV === "development") console.error("[api/episodes]", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

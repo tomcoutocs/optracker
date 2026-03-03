@@ -17,6 +17,7 @@ import { useInventoryRecent } from "@/hooks/useInventoryRecent";
 import { ProfileInventoryGrid } from "@/components/ProfileInventoryGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ViewDeckModal } from "@/components/ViewDeckModal";
 import { Loader2, ArrowLeft, Camera, LayoutGrid } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { InventoryCard } from "@/types";
@@ -30,6 +31,8 @@ export default function UserProfilePage() {
   const [rarity, setRarity] = useState("");
   const [color, setColor] = useState("");
   const [avatarInputKey, setAvatarInputKey] = useState(0);
+  const [viewDeckId, setViewDeckId] = useState<string | null>(null);
+  const [viewDeckOpen, setViewDeckOpen] = useState(false);
 
   useEffect(() => {
     createClient()
@@ -261,22 +264,45 @@ export default function UserProfilePage() {
             <ul className="space-y-2">
               {decks.slice(0, 5).map((d) => (
                 <li key={d.id}>
-                  <Link
-                    href={`/decks?deck=${d.id}`}
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors"
-                  >
-                    <div className="relative w-9 h-12 rounded overflow-hidden bg-muted shrink-0">
-                      {d.leader_image ? (
-                        <Image src={d.leader_image} alt="" fill className="object-cover" sizes="36px" />
-                      ) : (
-                        <span className="text-xs text-muted-foreground flex items-center justify-center h-full">—</span>
-                      )}
-                    </div>
-                    <span className="font-medium text-sm truncate flex-1">{d.name}</span>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {d.owned_count ?? 0}/{d.card_count ?? 0}
-                    </span>
-                  </Link>
+                  {isOwnProfile ? (
+                    <Link
+                      href={`/decks?deck=${d.id}`}
+                      className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors"
+                    >
+                      <div className="relative w-9 h-12 rounded overflow-hidden bg-muted shrink-0">
+                        {d.leader_image ? (
+                          <Image src={d.leader_image} alt="" fill className="object-cover" sizes="36px" />
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center justify-center h-full">—</span>
+                        )}
+                      </div>
+                      <span className="font-medium text-sm truncate flex-1">{d.name}</span>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {d.owned_count ?? 0}/{d.card_count ?? 0}
+                      </span>
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewDeckId(d.id);
+                        setViewDeckOpen(true);
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left"
+                    >
+                      <div className="relative w-9 h-12 rounded overflow-hidden bg-muted shrink-0">
+                        {d.leader_image ? (
+                          <Image src={d.leader_image} alt="" fill className="object-cover" sizes="36px" />
+                        ) : (
+                          <span className="text-xs text-muted-foreground flex items-center justify-center h-full">—</span>
+                        )}
+                      </div>
+                      <span className="font-medium text-sm truncate flex-1">{d.name}</span>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {d.owned_count ?? 0}/{d.card_count ?? 0}
+                      </span>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -307,6 +333,19 @@ export default function UserProfilePage() {
           />
         </CardContent>
       </Card>
+
+      {!isOwnProfile && (
+        <ViewDeckModal
+          deckId={viewDeckId}
+          deckName={decks.find((d) => d.id === viewDeckId)?.name ?? ""}
+          ownerUsername={profile.username}
+          open={viewDeckOpen}
+          onOpenChange={(open) => {
+            setViewDeckOpen(open);
+            if (!open) setViewDeckId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
