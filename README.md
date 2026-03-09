@@ -66,6 +66,12 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
      - Schedule is in UTC: `0 10 * * *` = 10:00 UTC = 5am EST. For 5am EDT use `0 9 * * *`.
    - **Other hosts:** Use a cron or scheduler to `POST /api/sync-cards` with header `Authorization: Bearer <CRON_SECRET>` (or `x-cron-secret`) once per day.
 
+## Trades (proposals)
+
+Users can send trade proposals on the Trade page and accept/reject them on the Proposals page. The Proposals nav link shows a badge when there are pending incoming proposals.
+
+**Database:** Run `supabase/schema-trades.sql` in the Supabase SQL Editor (after schema-auth.sql).
+
 ## File structure
 
 ```

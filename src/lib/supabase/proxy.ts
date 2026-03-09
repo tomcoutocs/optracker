@@ -10,7 +10,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const protectedPaths = ["/inventory", "/decks", "/profile", "/users"];
+const protectedPaths = ["/inventory", "/decks", "/profile", "/users", "/trade"];
 const authPaths = ["/login", "/signup", "/auth"];
 
 function isProtected(pathname: string) {

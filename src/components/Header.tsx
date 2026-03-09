@@ -14,11 +14,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User as UserIcon } from "lucide-react";
+import { useTrades } from "@/hooks/useTrades";
 
 const navItems = [
   { href: "/", label: "Browse" },
   { href: "/inventory", label: "Inventory" },
   { href: "/decks", label: "Decks" },
+  { href: "/trade", label: "Trade" },
   { href: "/users", label: "Users" },
 ] as const;
 
@@ -26,6 +28,8 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const { data: trades = [] } = useTrades();
+  const pendingCount = trades.filter((t) => t.is_pending_for_me).length;
 
   useEffect(() => {
     const supabase = createClient();
@@ -61,18 +65,24 @@ export function Header() {
                   href === "/"
                     ? pathname === "/"
                     : pathname === href || pathname.startsWith(`${href}/`);
+                const showBadge = href === "/trade" && pendingCount > 0;
                 return (
                   <Link
                     key={href}
                     href={href}
                     className={cn(
-                      "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                      "rounded-full px-4 py-2 text-sm font-medium transition-colors relative",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     {label}
+                    {showBadge && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
