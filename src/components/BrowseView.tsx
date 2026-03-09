@@ -3,9 +3,11 @@
 /**
  * Browse Cards view: all cards with search and filters, grid/list toggle.
  * Shown on "/" when user is logged in.
+ * Supports ?search= in URL for deep links (e.g. from Discord bot).
  */
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { CardGrid } from "@/components/CardGrid";
 import { FiltersPanel } from "@/components/FiltersPanel";
 import { AddCardModal } from "@/components/AddCardModal";
@@ -21,8 +23,15 @@ const DEBOUNCE_MS = 300;
 const CARDS_LIMIT = 10000;
 
 export function BrowseView() {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get("search") ?? "";
+  const [search, setSearch] = useState(urlSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+
+  useEffect(() => {
+    setSearch(urlSearch);
+    setDebouncedSearch(urlSearch);
+  }, [urlSearch]);
   const [episodeId, setEpisodeId] = useState<number | null>(null);
   const [rarity, setRarity] = useState("");
   const [color, setColor] = useState("");

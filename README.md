@@ -56,7 +56,9 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
 
    **Run sync once per day** so the card list stays up to date:
 
-   - **Vercel (recommended):** The repo includes a cron in `vercel.json` that runs **daily at 5:00 AM EST** (10:00 UTC). To enable it:
+   - **Vercel env for Discord bot:** Add `DISCORD_BOT_SECRET` to your Vercel project’s Environment Variables (Production) so the `/api/discord/card-search` endpoint accepts requests from Optrackman.
+
+- **Vercel (recommended):** The repo includes a cron in `vercel.json` that runs **daily at 5:00 AM EST** (10:00 UTC). To enable it:
      1. In the [Vercel Dashboard](https://vercel.com/dashboard), open your project.
      2. Go to **Settings → Environment Variables**.
      3. Add **CRON_SECRET**: name `CRON_SECRET`, value = a long random string (e.g. from `openssl rand -hex 32`). Add it for Production (and Preview if you want cron in preview).
@@ -110,6 +112,18 @@ supabase/
 - **Add card modal:** Quantity, condition, notes; if card already in inventory, quantity is incremented.
 - **Inventory:** Table of owned cards with API metadata; sort/filter; decrement by 1 or remove entirely.
 - **Performance:** Lazy-loaded images, debounced search, optimistic inventory updates.
+
+## Discord Bot (Optrackman)
+
+A separate project, [Optrackman](../optrackman), provides a Discord bot for card search. Clone or open the `optrackman` project, then:
+
+1. Create a Discord Application at [discord.com/developers/applications](https://discord.com/developers/applications).
+2. Create a Bot, copy the token → `DISCORD_BOT_TOKEN`.
+3. Use OAuth2 → URL Generator (scope: `bot`, permissions: Send Messages) to add the bot to your server.
+4. In your OP Tracker app `.env.local`, add `DISCORD_BOT_SECRET` (a long random string, e.g. `openssl rand -hex 32`).
+5. In the `optrackman` project: copy `.env.example` to `.env`, set `DISCORD_BOT_TOKEN`, `DISCORD_BOT_SECRET`, and `OPTRACKER_API_URL`, then run `npm install` and `npm start`.
+
+**Command:** `/card <search>` – Search by card name or card ID. Shows an embed with the card image, rarity, color, and who has it in inventory.
 
 ## API notes
 
