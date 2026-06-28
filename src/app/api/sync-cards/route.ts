@@ -10,6 +10,9 @@ import { getEpisodesFromDb, getCardsFromDb } from "@/lib/db/cards";
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
+  if (process.env.NODE_ENV === "production" && !secret) {
+    return false;
+  }
   if (!secret) return true;
   const authHeader = request.headers.get("authorization");
   const cronSecret = request.headers.get("x-cron-secret");

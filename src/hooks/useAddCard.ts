@@ -61,8 +61,9 @@ export function useAddCard() {
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: ["inventory"] });
-      const prev = queryClient.getQueryData(["inventory"]) as unknown[] | undefined;
-      queryClient.setQueryData(["inventory"], (old: unknown[] | undefined) => {
+      const entries = queryClient.getQueriesData<unknown[]>({ queryKey: ["inventory"] });
+      const prev = entries[0]?.[1];
+      queryClient.setQueriesData<unknown[]>({ queryKey: ["inventory"] }, (old) => {
         const list = Array.isArray(old) ? [...old] : [];
         const idx = list.findIndex((r: unknown) => (r as { card_id?: string }).card_id === input.card_id);
         if (idx >= 0) {
@@ -88,7 +89,7 @@ export function useAddCard() {
     },
     onError: (_err, _input, context) => {
       if (context?.previousInventory != null) {
-        queryClient.setQueryData(["inventory"], context.previousInventory);
+        queryClient.setQueriesData({ queryKey: ["inventory"] }, context.previousInventory);
       }
     },
     onSettled: () => {

@@ -131,11 +131,15 @@ function TradeProposalCard({
   cardMap,
   onAccept,
   onReject,
+  onCancel,
+  onCounter,
 }: {
   trade: Trade;
   cardMap: Map<string, ApiCard>;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
+  onCancel?: (id: string) => void;
+  onCounter?: (id: string) => void;
 }) {
   const isIncoming = trade.to_username && trade.is_pending_for_me;
   const statusColor =
@@ -161,16 +165,28 @@ function TradeProposalCard({
             </span>
           </div>
           {isIncoming && trade.status === "pending" && (
-            <div className="flex gap-1">
+            <div className="flex flex-wrap gap-1">
               <Button size="sm" variant="default" className="gap-1" onClick={() => onAccept(trade.id)}>
                 <Check className="h-3.5 w-3.5" />
                 Accept
               </Button>
+              {onCounter && (
+                <Button size="sm" variant="secondary" className="gap-1" onClick={() => onCounter(trade.id)}>
+                  <ArrowRightLeft className="h-3.5 w-3.5" />
+                  Counter
+                </Button>
+              )}
               <Button size="sm" variant="outline" className="gap-1" onClick={() => onReject(trade.id)}>
                 <X className="h-3.5 w-3.5" />
                 Reject
               </Button>
             </div>
+          )}
+          {!isIncoming && trade.status === "pending" && trade.is_mine_outgoing && onCancel && (
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => onCancel(trade.id)}>
+              <X className="h-3.5 w-3.5" />
+              Cancel
+            </Button>
           )}
         </div>
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -473,6 +489,8 @@ export default function TradePage() {
 
   const handleAccept = (id: string) => respondToTrade.mutate({ tradeId: id, action: "accept" });
   const handleReject = (id: string) => respondToTrade.mutate({ tradeId: id, action: "reject" });
+  const handleCancel = (id: string) => respondToTrade.mutate({ tradeId: id, action: "cancel" });
+  const handleCounter = (id: string) => respondToTrade.mutate({ tradeId: id, action: "counter" });
 
   return (
     <div className="space-y-4">
@@ -535,6 +553,9 @@ export default function TradePage() {
             </Card>
           ) : (
             <div className="space-y-6">
+              {incomingTrades.length === 0 && outgoingTrades.length > 0 && (
+                <p className="text-sm text-muted-foreground">No incoming proposals right now.</p>
+              )}
               {incomingTrades.length > 0 && (
                 <section>
                   <h2 className="text-lg font-semibold mb-3">Incoming</h2>
@@ -546,11 +567,15 @@ export default function TradePage() {
                           cardMap={proposalCardMap}
                           onAccept={handleAccept}
                           onReject={handleReject}
+                          onCounter={handleCounter}
                         />
                       </li>
                     ))}
                   </ul>
                 </section>
+              )}
+              {outgoingTrades.length === 0 && incomingTrades.length > 0 && (
+                <p className="text-sm text-muted-foreground">No outgoing proposals.</p>
               )}
               {outgoingTrades.length > 0 && (
                 <section>
@@ -563,6 +588,7 @@ export default function TradePage() {
                           cardMap={proposalCardMap}
                           onAccept={handleAccept}
                           onReject={handleReject}
+                          onCancel={handleCancel}
                         />
                       </li>
                     ))}
@@ -595,7 +621,7 @@ export default function TradePage() {
                 ) : filteredMyItems.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-4">No cards match your search.</p>
                 ) : (
-                  <div className="grid grid-cols-4 gap-0.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-1">
                     {filteredMyItems.map((item) => (
                       <InventoryCardThumb
                         key={item.card.id}
@@ -670,7 +696,7 @@ export default function TradePage() {
                   ) : filteredTheirItems.length === 0 ? (
                     <p className="text-sm text-muted-foreground py-4">No cards match your search.</p>
                   ) : (
-                    <div className="grid grid-cols-4 gap-0.5">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1">
                       {filteredTheirItems.map((item) => {
                         const invQty = (item.inventory as { quantity: number }).quantity;
                         return (

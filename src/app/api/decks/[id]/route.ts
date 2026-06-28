@@ -56,6 +56,20 @@ export async function PATCH(
     }
     if (typeof body.is_active === "boolean") {
       updates.is_active = body.is_active;
+      if (body.is_active) {
+        const { data: deckRow } = await supabase
+          .from("decks")
+          .select("user_id")
+          .eq("id", id)
+          .single();
+        if (deckRow?.user_id) {
+          await supabase
+            .from("decks")
+            .update({ is_active: false })
+            .eq("user_id", deckRow.user_id)
+            .neq("id", id);
+        }
+      }
     }
     if (Object.keys(updates).length > 0) {
       const { error: updateError } = await supabase

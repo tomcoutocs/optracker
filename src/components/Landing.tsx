@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LayoutGrid, Package, Layers } from "lucide-react";
+import { GuestBrowseView } from "@/components/GuestBrowseView";
 
 const features = [
   {
@@ -58,6 +59,8 @@ export function Landing() {
           </Card>
         ))}
       </div>
+
+      <GuestBrowseView />
     </div>
   );
 }

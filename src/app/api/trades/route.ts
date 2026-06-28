@@ -1,10 +1,15 @@
 /**
- * GET /api/trades - list trades for current user (sent and received).
  * POST /api/trades - create trade proposal { toUserId, fromItems, toItems }.
  */
 
 import { createServerClientFromRequest } from "@/lib/supabase/server-cookies";
+import { createServerClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  normalizeTradeItems,
+  inventoryMapFromRows,
+  validateInventoryForItems,
+} from "@/lib/trade-validation";
 
 export async function GET(request: NextRequest) {
   const { supabase, applyCookies } = createServerClientFromRequest(request);
@@ -24,7 +29,7 @@ export async function GET(request: NextRequest) {
       userIds.add(t.from_user_id);
       userIds.add(t.to_user_id);
     }
-    const admin = (await import("@/lib/supabase/server")).createServerClient();
+    const admin = createServerClient();
     const { data: profiles } = await admin
       .from("profiles")
       .select("id, username")
@@ -56,18 +61,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const toUserId = body.toUserId as string | undefined;
-    const fromItems = Array.isArray(body.fromItems) ? body.fromItems as { card_id: string; quantity: number }[] : [];
-    const toItems = Array.isArray(body.toItems) ? body.toItems as { card_id: string; quantity: number }[] : [];
+    const validFrom = normalizeTradeItems(
+      Array.isArray(body.fromItems) ? body.fromItems : []
+    );
+    const validTo = normalizeTradeItems(
+      Array.isArray(body.toItems) ? body.toItems : []
+    );
 
     if (!toUserId || toUserId === user.id) {
       return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
     }
-    if (fromItems.length === 0 && toItems.length === 0) {
+    if (validFrom.length === 0 && validTo.length === 0) {
       return NextResponse.json({ error: "Must offer or request at least one card" }, { status: 400 });
     }
 
-    const validFrom = fromItems.filter((x) => x?.card_id && typeof x.quantity === "number" && x.quantity > 0);
-    const validTo = toItems.filter((x) => x?.card_id && typeof x.quantity === "number" && x.quantity > 0);
+    const { data: invRows, error: invError } = await supabase
+      .from("inventory")
+      .select("card_id, quantity")
+      .eq("user_id", user.id);
+    if (invError) throw invError;
+
+    const inventory = inventoryMapFromRows(invRows ?? []);
+    const validationError = validateInventoryForItems(inventory, validFrom, "You");
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
 
     const { data: trade, error } = await supabase
       .from("trades")

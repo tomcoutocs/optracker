@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { InventoryTable } from "@/components/InventoryTable";
 import { FiltersPanel } from "@/components/FiltersPanel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -13,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useInventoryCards } from "@/hooks/useInventoryCards";
+import { useAuthUser } from "@/hooks/useAuthUser";
 import { useActiveDeckCards } from "@/hooks/useActiveDeckCards";
 import { useEpisodes } from "@/hooks/useEpisodes";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
@@ -22,12 +24,13 @@ import { useRemoveCard } from "@/hooks/useRemoveCard";
 import { ChevronRight, LayoutGrid, Search } from "lucide-react";
 
 export default function InventoryPage() {
-  const [view, setView] = useState<"collections" | "search">("collections");
+  const [view, setView] = useState<"collections" | "search">("search");
   const [search, setSearch] = useState("");
   const [episodeId, setEpisodeId] = useState<number | null>(null);
   const [rarity, setRarity] = useState("");
   const [color, setColor] = useState("");
-  const { items, isLoading, isError, error } = useInventoryCards();
+  const { user, isLoading: authLoading } = useAuthUser();
+  const { items, inventory, isLoading, isError, error } = useInventoryCards();
   const { data: decksByCard = {} } = useActiveDeckCards();
   const { data: episodes = [] } = useEpisodes();
   const { data: episodeCounts = [] } = useEpisodeCounts();
@@ -48,7 +51,7 @@ export default function InventoryPage() {
     const m = new Map<number, Set<string>>();
     for (const x of items) {
       const id = x.card.episode?.id;
-      if (id == null) continue;
+      if (id == null || id === 0) continue;
       if (!m.has(id)) m.set(id, new Set());
       m.get(id)!.add(String(x.card.id));
     }
@@ -56,6 +59,11 @@ export default function InventoryPage() {
     m.forEach((set, episodeId) => out.set(episodeId, set.size));
     return out;
   }, [items]);
+
+  const ownedEpisodeIds = useMemo(
+    () => episodes.filter((ep) => (ownedUniqueByEpisode.get(ep.id) ?? 0) > 0),
+    [episodes, ownedUniqueByEpisode]
+  );
 
   const filteredItems = useMemo(() => {
     let list = items;
@@ -117,7 +125,8 @@ export default function InventoryPage() {
           <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
           {!isLoading && !isError && (
             <p className="text-sm text-muted-foreground mt-1">
-              Total value: <span className="font-semibold text-foreground">${totalValue.toFixed(2)}</span>
+              {inventory.length} cards · Total value:{" "}
+              <span className="font-semibold text-foreground">${totalValue.toFixed(2)}</span>
             </p>
           )}
         </div>
@@ -167,8 +176,16 @@ export default function InventoryPage() {
           {error instanceof Error ? error.message : "Failed to load inventory."}
         </p>
       )}
-      {isLoading && <p className="text-muted-foreground">Loading inventory…</p>}
-      {!isLoading && !isError && view === "search" && (
+      {!authLoading && !user && (
+        <p className="text-sm text-foreground">
+          Sign in to view your inventory.{" "}
+          <Link href="/login" className="font-medium underline underline-offset-4">
+            Log in
+          </Link>
+        </p>
+      )}
+      {user && isLoading && <p className="text-muted-foreground">Loading inventory…</p>}
+      {!authLoading && user && !isLoading && !isError && view === "search" && (
         <InventoryTable
           items={filteredItems}
           onIncrement={handleIncrement}
@@ -176,9 +193,14 @@ export default function InventoryPage() {
           onRemove={handleRemove}
         />
       )}
-      {!isLoading && !isError && view === "collections" && (
+      {!authLoading && user && !isLoading && !isError && view === "collections" && ownedEpisodeIds.length === 0 && items.length > 0 && (
+        <p className="text-sm text-foreground/80">
+          No sets matched your cards for grouping. Use Search view to see your full inventory.
+        </p>
+      )}
+      {!authLoading && user && !isLoading && !isError && view === "collections" && (
         <div className="space-y-3">
-          {episodes.map((ep) => {
+          {ownedEpisodeIds.map((ep) => {
             const totalInSet = totalInSetByEpisode.get(ep.id) ?? 0;
             const ownedUnique = ownedUniqueByEpisode.get(ep.id) ?? 0;
             const progressPct = totalInSet > 0 ? Math.round((ownedUnique / totalInSet) * 100) : 0;
@@ -225,6 +247,16 @@ export default function InventoryPage() {
               </Collapsible>
             );
           })}
+          {items.length === 0 && episodes.length > 0 && (
+            <p className="text-muted-foreground text-sm">
+              No cards in your inventory yet. Browse cards and add them to get started.
+            </p>
+          )}
+          {items.length > 0 && ownedEpisodeIds.length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              Your inventory cards could not be grouped by set. Switch to Search view to see them.
+            </p>
+          )}
           {episodes.length === 0 && (
             <p className="text-muted-foreground text-sm">No sets loaded. Run a card sync.</p>
           )}

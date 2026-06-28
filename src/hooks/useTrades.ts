@@ -17,7 +17,7 @@ export interface Trade {
   id: string;
   from_user_id: string;
   to_user_id: string;
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "cancelled" | "countered";
   from_items: TradeItem[];
   to_items: TradeItem[];
   created_at: string;
@@ -37,11 +37,12 @@ async function fetchTrades(): Promise<Trade[]> {
   return res.json();
 }
 
-export function useTrades() {
+export function useTrades(enabled = true) {
   return useQuery({
     queryKey: ["trades"],
     queryFn: fetchTrades,
     staleTime: 15 * 1000,
+    enabled,
   });
 }
 
@@ -67,7 +68,7 @@ export function useCreateTrade() {
 export function useRespondToTrade() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ tradeId, action }: { tradeId: string; action: "accept" | "reject" }) => {
+    mutationFn: async ({ tradeId, action }: { tradeId: string; action: "accept" | "reject" | "cancel" | "counter" }) => {
       const res = await fetch(`/api/trades/${tradeId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

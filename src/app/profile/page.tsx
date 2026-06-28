@@ -8,13 +8,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { useProfile, useUploadAvatar } from "@/hooks/useProfile";
+import { useProfile, useUploadAvatar, useUpdateProfile } from "@/hooks/useProfile";
 import { useInventoryCards } from "@/hooks/useInventoryCards";
 import { useInventoryRecent } from "@/hooks/useInventoryRecent";
 import { useDecks } from "@/hooks/useDecks";
 import { ProfileInventoryGrid } from "@/components/ProfileInventoryGrid";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Camera, Loader2, LayoutGrid } from "lucide-react";
 
 export default function ProfilePage() {
@@ -36,6 +37,12 @@ export default function ProfilePage() {
   const { data: recentCards = [], isLoading: recentLoading } = useInventoryRecent(5);
   const { data: decks = [], isLoading: decksLoading } = useDecks();
   const uploadAvatar = useUploadAvatar(userId);
+  const updateProfile = useUpdateProfile(userId);
+  const [usernameDraft, setUsernameDraft] = useState("");
+
+  useEffect(() => {
+    if (profile?.username) setUsernameDraft(profile.username);
+  }, [profile?.username]);
 
   const totalValue = items.reduce((sum, x) => {
     const price = x.card.market_price ?? x.card.inventory_price ?? 0;
@@ -101,6 +108,31 @@ export default function ProfilePage() {
         </div>
 
         <div className="flex-1 min-w-[200px] space-y-4">
+          <Card>
+            <CardContent className="pt-6 space-y-3">
+              <p className="text-sm font-medium">Username</p>
+              <form
+                className="flex flex-wrap gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const trimmed = usernameDraft.trim();
+                  if (!trimmed || trimmed === profile?.username) return;
+                  updateProfile.mutate({ username: trimmed });
+                }}
+              >
+                <Input
+                  value={usernameDraft}
+                  onChange={(e) => setUsernameDraft(e.target.value)}
+                  className="max-w-xs"
+                  minLength={2}
+                  maxLength={32}
+                />
+                <Button type="submit" size="sm" disabled={updateProfile.isPending}>
+                  {updateProfile.isPending ? "Saving…" : "Save"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Inventory value</p>
@@ -202,6 +234,7 @@ export default function ProfilePage() {
             <h2 className="font-semibold">Search your inventory</h2>
           </div>
           <ProfileInventoryGrid
+            items={items}
             search={search}
             onSearchChange={setSearch}
             episodeId={episodeId}

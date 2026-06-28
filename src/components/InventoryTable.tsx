@@ -185,7 +185,7 @@ export function InventoryTable({ items, onIncrement, onDecrement, onRemove, deck
 
   return (
     <Card>
-      <CardContent className="p-0">
+      <CardContent className="p-0 overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

@@ -89,9 +89,8 @@ export function useUserProfileData(username: string | null) {
       return res.json();
     },
     enabled: !!username,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+    staleTime: 60 * 1000,
+    refetchOnMount: true,
   });
 }
 

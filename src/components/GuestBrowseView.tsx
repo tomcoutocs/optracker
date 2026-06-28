@@ -1,43 +1,30 @@
 "use client";
 
 /**
- * Browse Cards view with pagination, wishlist, and sync status.
+ * Read-only browse for guests on the landing page.
  */
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { CardGrid } from "@/components/CardGrid";
 import { FiltersPanel } from "@/components/FiltersPanel";
-import { AddCardModal } from "@/components/AddCardModal";
 import { Button } from "@/components/ui/button";
 import { useCards } from "@/hooks/useCards";
 import { useEpisodes } from "@/hooks/useEpisodes";
 import { useFilterOptions } from "@/hooks/useFilterOptions";
-import { useAddCard } from "@/hooks/useAddCard";
-import { useInventory } from "@/hooks/useInventory";
 import { useSyncStatus } from "@/hooks/useSyncStatus";
-import type { ApiCard } from "@/types";
 
 const DEBOUNCE_MS = 300;
 const PAGE_SIZE = 48;
 
-export function BrowseView() {
-  const searchParams = useSearchParams();
-  const urlSearch = searchParams.get("search") ?? "";
-  const [search, setSearch] = useState(urlSearch);
-  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
-  const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    setSearch(urlSearch);
-    setDebouncedSearch(urlSearch);
-  }, [urlSearch]);
-
+export function GuestBrowseView() {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [episodeId, setEpisodeId] = useState<number | null>(null);
   const [rarity, setRarity] = useState("");
   const [color, setColor] = useState("");
   const [layout, setLayout] = useState<"grid" | "list">("grid");
-  const [addCard, setAddCard] = useState<ApiCard | null>(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), DEBOUNCE_MS);
@@ -58,41 +45,28 @@ export function BrowseView() {
   });
   const { data: episodes = [] } = useEpisodes();
   const { data: filterOptions } = useFilterOptions();
-  const addCardMutation = useAddCard();
-  const { data: inventory = [] } = useInventory();
   const { data: syncStatus } = useSyncStatus();
 
-  const quantityByCardId = inventory.reduce<Record<string, number>>((acc, inv) => {
-    acc[inv.card_id] = (acc[inv.card_id] ?? 0) + inv.quantity;
-    return acc;
-  }, {});
-
-  const rarities = filterOptions?.rarities ?? [];
-  const colors = filterOptions?.colors ?? [];
   const cards = data?.cards ?? [];
   const total = data?.total ?? 0;
   const hasMore = page * PAGE_SIZE < total;
+  const rarities = filterOptions?.rarities ?? [];
+  const colors = filterOptions?.colors ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="mt-12 w-full max-w-6xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Browse Cards</h1>
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Browse the card catalog</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Sign up to add cards to your inventory and build decks.
+          </p>
+        </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">View</span>
-          <Button
-            type="button"
-            variant={layout === "grid" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setLayout("grid")}
-          >
+          <Button type="button" variant={layout === "grid" ? "default" : "outline"} size="sm" onClick={() => setLayout("grid")}>
             Grid
           </Button>
-          <Button
-            type="button"
-            variant={layout === "list" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setLayout("list")}
-          >
+          <Button type="button" variant={layout === "list" ? "default" : "outline"} size="sm" onClick={() => setLayout("list")}>
             List
           </Button>
         </div>
@@ -122,15 +96,9 @@ export function BrowseView() {
         <>
           <p className="text-sm text-muted-foreground">
             Showing {cards.length} of {total} cards
-            {page > 1 && ` (page ${page})`}
           </p>
-          <CardGrid
-            cards={cards}
-            onAdd={setAddCard}
-            layout={layout}
-            quantityByCardId={quantityByCardId}
-          />
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <CardGrid cards={cards} onAdd={() => {}} layout={layout} readOnly />
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             {page > 1 && (
               <Button type="button" variant="outline" size="sm" onClick={() => setPage((p) => p - 1)}>
                 Previous
@@ -146,30 +114,20 @@ export function BrowseView() {
       )}
 
       {syncStatus?.last_sync_at && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground">
           Catalog updated {new Date(syncStatus.last_sync_at).toLocaleString()}
-          {syncStatus.cards_count > 0 && ` · ${syncStatus.cards_count.toLocaleString()} cards in database`}
+          {syncStatus.cards_count > 0 && ` · ${syncStatus.cards_count.toLocaleString()} cards`}
         </p>
       )}
 
-      {addCard && (
-        <AddCardModal
-          card={addCard}
-          onClose={() => setAddCard(null)}
-          onSave={(params) =>
-            addCardMutation.mutate(
-              {
-                card_id: params.card_id,
-                quantity: params.quantity,
-                condition: params.condition as import("@/types").CardCondition | null,
-                notes: params.notes,
-              },
-              { onSuccess: () => setAddCard(null) }
-            )
-          }
-          isPending={addCardMutation.isPending}
-        />
-      )}
+      <div className="flex justify-center gap-3 pt-4">
+        <Button asChild>
+          <Link href="/signup">Sign up free</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/login">Log in</Link>
+        </Button>
+      </div>
     </div>
   );
 }

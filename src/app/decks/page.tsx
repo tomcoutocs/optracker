@@ -20,6 +20,7 @@ import {
 import { useInventoryCards } from "@/hooks/useInventoryCards";
 import { useCards } from "@/hooks/useCards";
 import type { ApiCard } from "@/types";
+import { checkDeckLegality } from "@/lib/deck-legality";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -198,6 +199,15 @@ function DecksPageContent() {
       sum += unitPrice * entry.quantity;
     }
     return sum;
+  }, [deckCards, cardsMap]);
+
+  const deckLegality = useMemo(() => {
+    const entries = deckCards.map((entry) => ({
+      card_id: entry.card_id,
+      quantity: entry.quantity,
+      card: cardsMap.get(entry.card_id) ?? null,
+    }));
+    return checkDeckLegality(entries);
   }, [deckCards, cardsMap]);
 
   const handleNewDeck = () => {
@@ -463,7 +473,16 @@ function DecksPageContent() {
                       </div>
                       <p className="text-sm text-muted-foreground">
                         Total deck value: <span className="font-semibold text-foreground">${deckTotalPrice.toFixed(2)}</span>
+                        {" · "}
+                        {deckLegality.totalCards} cards ({deckLegality.leaderCount} leader)
                       </p>
+                      {deckLegality.issues.length > 0 && (
+                        <ul className="text-sm text-muted-foreground space-y-1 rounded-lg border border-border bg-muted/30 p-3">
+                          {deckLegality.issues.map((issue) => (
+                            <li key={issue}>{issue}</li>
+                          ))}
+                        </ul>
+                      )}
                     </CardContent>
                   </Card>
 

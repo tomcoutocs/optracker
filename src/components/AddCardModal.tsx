@@ -55,7 +55,6 @@ export function AddCardModal({ card, onClose, onSave, isPending }: AddCardModalP
       condition: condition || null,
       notes: notes.trim() || null,
     });
-    onClose();
   };
 
   return (

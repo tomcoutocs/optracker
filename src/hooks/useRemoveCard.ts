@@ -51,9 +51,10 @@ export function useRemoveCard() {
     },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: ["inventory"] });
-      const prev = queryClient.getQueryData(["inventory"]) as unknown[] | undefined;
+      const entries = queryClient.getQueriesData<unknown[]>({ queryKey: ["inventory"] });
+      const prev = entries[0]?.[1];
       const decrement = input.decrement === true ? 1 : typeof input.decrement === "number" ? input.decrement : undefined;
-      queryClient.setQueryData(["inventory"], (old: unknown[] | undefined) => {
+      queryClient.setQueriesData<unknown[]>({ queryKey: ["inventory"] }, (old) => {
         const list = (Array.isArray(old) ? [...old] : []) as { card_id?: string; quantity?: number; id?: string }[];
         return list
           .map((r) => {
@@ -70,7 +71,7 @@ export function useRemoveCard() {
     },
     onError: (_err, _input, context) => {
       if (context?.previousInventory != null) {
-        queryClient.setQueryData(["inventory"], context.previousInventory);
+        queryClient.setQueriesData({ queryKey: ["inventory"] }, context.previousInventory);
       }
     },
     onSettled: () => {

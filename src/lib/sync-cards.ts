@@ -137,10 +137,25 @@ export async function syncCards(episodes: ApiEpisode[], source: "rapidapi" | "op
   return { total: cards.length };
 }
 
+async function recordSyncMeta(episodes: number, cards: number, source: string): Promise<void> {
+  const supabase = createServerClient();
+  const { error } = await supabase.from("sync_meta").upsert({
+    id: 1,
+    last_sync_at: new Date().toISOString(),
+    episodes_count: episodes,
+    cards_count: cards,
+    source,
+  });
+  if (error) {
+    console.warn("[sync-cards] sync_meta upsert failed (run schema-sync-meta.sql):", error.message);
+  }
+}
+
 export async function runSync(): Promise<{ episodes: number; cards: number; source: string }> {
   const episodesResult = await syncEpisodes();
   const { episodes } = await getEpisodes();
   const cardsResult = await syncCards(episodes, episodesResult.source as "rapidapi" | "optcg");
+  await recordSyncMeta(episodesResult.inserted, cardsResult.total, episodesResult.source);
   return {
     episodes: episodesResult.inserted,
     cards: cardsResult.total,

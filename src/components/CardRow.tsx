@@ -6,6 +6,7 @@
  */
 
 import Image from "next/image";
+import Link from "next/link";
 import type { ApiCard } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,14 @@ interface CardRowProps {
   card: ApiCard;
   onAdd: () => void;
   quantity?: number;
+  readOnly?: boolean;
 }
 
-export function CardRow({ card, onAdd, quantity }: CardRowProps) {
+export function CardRow({ card, onAdd, quantity, readOnly = false }: CardRowProps) {
   return (
     <Card className="transition-colors hover:bg-muted/50">
       <CardContent className="p-3 flex flex-row items-center gap-3">
-        <div className="relative w-12 h-16 shrink-0 rounded-md overflow-hidden bg-muted">
+        <Link href={`/cards/${encodeURIComponent(String(card.id))}`} className="relative w-12 h-16 shrink-0 rounded-md overflow-hidden bg-muted block">
           {card.image ? (
             <Image
               src={card.image}
@@ -40,9 +42,14 @@ export function CardRow({ card, onAdd, quantity }: CardRowProps) {
               {quantity}
             </span>
           )}
-        </div>
+        </Link>
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-sm truncate">{card.name}</p>
+          <Link
+            href={`/cards/${encodeURIComponent(String(card.id))}`}
+            className="font-medium text-sm truncate block hover:underline"
+          >
+            {card.name}
+          </Link>
           <p className="text-xs text-muted-foreground">
             {card.episode?.code ?? "—"} · {card.rarity} · {card.color}
             {quantity != null && quantity > 0 && (
@@ -53,9 +60,11 @@ export function CardRow({ card, onAdd, quantity }: CardRowProps) {
             )}
           </p>
         </div>
-        <Button type="button" size="sm" variant="secondary" onClick={onAdd} className="shrink-0">
-          {quantity != null && quantity > 0 ? "Add more" : "Add"}
-        </Button>
+        {!readOnly && (
+          <Button type="button" size="sm" variant="secondary" onClick={onAdd} className="shrink-0">
+            {quantity != null && quantity > 0 ? "Add more" : "Add"}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

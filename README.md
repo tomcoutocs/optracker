@@ -19,7 +19,7 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
 2. **Supabase**
 
    - Create a project at [supabase.com](https://supabase.com).
-   - Run the schema in the SQL Editor: first `supabase/schema.sql`, then `supabase/schema-cards.sql`.
+   - Run the schema files in order — see **[SETUP.md](SETUP.md)** for the full list.
    - In Project Settings → API, copy the project URL and anon key.
 
 3. **One Piece API (RapidAPI)**
@@ -30,8 +30,9 @@ Production-quality web app to **browse** all One Piece TCG cards, **add/remove**
 4. **Environment**
 
    - Copy `.env.example` to `.env.local`.
-   - Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `RAPIDAPI_KEY`.
-   - Set `SUPABASE_SERVICE_ROLE_KEY` (from Supabase Dashboard → Project Settings → API → service_role key) to view other users' profiles (inventory, decks). Without it, other users' profiles will show empty.
+   - Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and optional keys (see `.env.example`).
+   - Set `SUPABASE_SERVICE_ROLE_KEY` (from Supabase Dashboard → Project Settings → API → service_role) for trades, cross-user profiles, and deck view.
+   - Set `CRON_SECRET` in production so only your cron job can call `/api/sync-cards`.
 
 5. **Run**
 
@@ -114,10 +115,16 @@ supabase/
 
 ## Features
 
-- **Browse:** Paginated cards, search (debounced), filters (set, rarity, color), grid/list toggle, add to inventory.
-- **Add card modal:** Quantity, condition, notes; if card already in inventory, quantity is incremented.
-- **Inventory:** Table of owned cards with API metadata; sort/filter; decrement by 1 or remove entirely.
-- **Performance:** Lazy-loaded images, debounced search, optimistic inventory updates.
+- **Browse:** Paginated cards (48 per page), search, filters, grid/list, card detail pages, wishlist.
+- **Guests:** Read-only catalog browse on the landing page.
+- **Inventory:** Collections (set completion) + search table; condition and notes on cards.
+- **Decks:** Builder with have/need, import/export, legality hints, single active deck.
+- **Trade:** Proposals, accept/reject/cancel/counter, inventory validation.
+- **Social:** User profiles, directory, copy decks.
+- **Theme:** Light/dark toggle in header.
+- **Sync:** Daily catalog sync; last-updated shown on browse.
+
+See **[IMPROVEMENTS_LOG.md](IMPROVEMENTS_LOG.md)** for the full improvement changelog.
 
 ## Discord Bot (Optrackman)
 

@@ -13,8 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, Menu, User as UserIcon } from "lucide-react";
 import { useTrades } from "@/hooks/useTrades";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { href: "/", label: "Browse" },
@@ -28,7 +29,7 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const { data: trades = [] } = useTrades();
+  const { data: trades = [] } = useTrades(!!user);
   const pendingCount = trades.filter((t) => t.is_pending_for_me).length;
 
   useEffect(() => {
@@ -55,46 +56,71 @@ export function Header() {
           className="flex items-center gap-2 font-semibold text-lg tracking-tight text-foreground transition-opacity hover:opacity-80"
         >
           <span className="rounded-md border border-border bg-muted px-1.5 py-0.5 font-bold text-foreground">OP</span>
-          <span>Tracker</span>
+          <span className="hidden sm:inline">Tracker</span>
         </Link>
-        <div className="flex items-center gap-1">
+
+        {user && (
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map(({ href, label }) => {
+              const isActive =
+                href === "/"
+                  ? pathname === "/"
+                  : pathname === href || pathname.startsWith(`${href}/`);
+              const showBadge = href === "/trade" && pendingCount > 0;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "rounded-full px-4 py-2 text-sm font-medium transition-colors relative",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {label}
+                  {showBadge && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-border bg-foreground px-1 text-[10px] font-bold text-background">
+                      {pendingCount > 9 ? "9+" : pendingCount}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="flex items-center gap-1 ml-auto">
+          <ThemeToggle />
           {user && (
-            <>
-              {navItems.map(({ href, label }) => {
-                const isActive =
-                  href === "/"
-                    ? pathname === "/"
-                    : pathname === href || pathname.startsWith(`${href}/`);
-                const showBadge = href === "/trade" && pendingCount > 0;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      "rounded-full px-4 py-2 text-sm font-medium transition-colors relative",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    {label}
-                    {showBadge && (
-                      <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-border bg-foreground px-1 text-[10px] font-bold text-background">
-                        {pendingCount > 9 ? "9+" : pendingCount}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {navItems.map(({ href, label }) => (
+                  <DropdownMenuItem key={href} asChild>
+                    <Link href={href} className="cursor-pointer">
+                      {label}
+                      {href === "/trade" && pendingCount > 0 && ` (${pendingCount})`}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">Profile</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-          <div className="ml-4 flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
                     <UserIcon className="h-4 w-4" />
-                    <span className="max-w-[120px] truncate">
+                    <span className="max-w-[120px] truncate hidden sm:inline">
                       {user.user_metadata?.username ?? user.email ?? "Account"}
                     </span>
                   </Button>

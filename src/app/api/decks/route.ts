@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
 
     const { data: deckCardsRows, error: dcError } = await supabase
       .from("deck_cards")
-      .select("deck_id, card_id, quantity");
+      .select("deck_id, card_id, quantity")
+      .in("deck_id", deckIds);
     if (dcError) throw dcError;
 
     // Group deck_cards by (deck_id, card_id) and sum quantities to avoid overcounting duplicates
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       ownedByDeck.set(deckId, owned);
     }
 
-    let leaderImageByDeck = new Map<string, string | null>();
+    const leaderImageByDeck = new Map<string, string | null>();
     if (allCardIds.size > 0) {
       const { data: cardRows, error: cardsError } = await supabase
         .from("cards")
