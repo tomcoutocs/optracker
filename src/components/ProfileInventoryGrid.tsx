@@ -90,7 +90,7 @@ export function ProfileInventoryGrid({
         colors={colors}
       />
       {showFetchState && isError && (
-        <p className="text-destructive text-sm">{error instanceof Error ? error.message : "Failed to load."}</p>
+        <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">{error instanceof Error ? error.message : "Failed to load."}</p>
       )}
       {showFetchState && isLoading && <p className="text-muted-foreground">Loading inventory…</p>}
       {(!showFetchState || (!isLoading && !isError)) && (
@@ -103,7 +103,7 @@ export function ProfileInventoryGrid({
             <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {filteredItems.map((item) => {
                 const cardEl = (
-                  <Card className={`overflow-hidden transition-all group ${!readOnly ? "hover:shadow-lg hover:border-primary/40" : ""}`}>
+                  <Card className={`overflow-hidden transition-all group ${!readOnly ? "hover:shadow-md hover:border-border" : ""}`}>
                     <div className="aspect-[63/88] relative bg-muted">
                       {item.card.image ? (
                         <Image

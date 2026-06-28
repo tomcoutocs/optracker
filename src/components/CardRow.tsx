@@ -36,7 +36,7 @@ export function CardRow({ card, onAdd, quantity }: CardRowProps) {
             </div>
           )}
           {quantity != null && quantity > 0 && (
-            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-foreground text-xs font-bold text-background">
               {quantity}
             </span>
           )}

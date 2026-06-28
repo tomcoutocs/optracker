@@ -40,7 +40,7 @@ export function CardGrid({ cards, onAdd, layout = "grid", quantityByCardId = {} 
         const quantity = quantityByCardId[String(card.id)];
         return (
         <li key={String(card.id)} className="group">
-          <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/40">
+          <Card className="overflow-hidden transition-all hover:border-border hover:shadow-md">
             <div className="aspect-[63/88] relative bg-muted">
               {card.image ? (
                 <Image
@@ -57,7 +57,7 @@ export function CardGrid({ cards, onAdd, layout = "grid", quantityByCardId = {} 
                 </div>
               )}
               {quantity != null && quantity > 0 && (
-                <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
+                <span className="absolute top-2 right-2 flex min-w-5 h-5 items-center justify-center rounded-full border border-border/60 bg-foreground px-1.5 text-xs font-bold text-background">
                   {quantity}
                 </span>
               )}

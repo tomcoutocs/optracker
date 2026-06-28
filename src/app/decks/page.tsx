@@ -496,9 +496,9 @@ function DecksPageContent() {
                                   </p>
                                   <p className="text-xs text-muted-foreground">
                                     {have >= need ? (
-                                      <span className="text-green-600 dark:text-green-400">{have}/{need}</span>
+                                      <span className="text-foreground">{have}/{need}</span>
                                     ) : (
-                                      <span className="text-amber-600 dark:text-amber-400">{have}/{need}</span>
+                                      <span className="text-muted-foreground">{have}/{need}</span>
                                     )}
                                     {" · "}
                                     ${lineTotal.toFixed(2)}
@@ -583,7 +583,7 @@ function DecksPageContent() {
             rows={10}
           />
           {importError && (
-            <p className="text-sm text-destructive">{importError}</p>
+            <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">{importError}</p>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setImportOpen(false); setImportText(""); setImportError(null); }}>

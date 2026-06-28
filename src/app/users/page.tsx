@@ -81,7 +81,7 @@ export default function UsersPage() {
           {users.map((u) => (
             <li key={u.id}>
               <Link href={`/profile/${encodeURIComponent(u.username)}`}>
-                <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/40">
+                <Card className="overflow-hidden transition-all hover:shadow-md hover:border-border">
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-muted shrink-0">
                       {u.avatar_url ? (

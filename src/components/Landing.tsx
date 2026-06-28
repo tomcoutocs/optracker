@@ -32,7 +32,7 @@ export function Landing() {
     <div className="flex flex-1 flex-col items-center px-4 py-16">
       <div className="flex flex-col items-center text-center">
         <h1 className="flex items-center gap-2 font-bold tracking-tight text-4xl sm:text-5xl">
-          <span className="rounded bg-primary/10 px-2 py-1 font-bold text-primary">OP</span>
+          <span className="rounded-md border border-border bg-muted px-2 py-1 font-bold text-foreground">OP</span>
           <span>Tracker</span>
         </h1>
         <p className="mt-4 max-w-md text-muted-foreground text-lg">
@@ -44,10 +44,10 @@ export function Landing() {
         {features.map(({ title, description, icon: Icon }) => (
           <Card
             key={title}
-            className="border-border/60 bg-card/50 text-left transition-colors hover:border-primary/30 hover:bg-card/80"
+            className="border-border/60 bg-card/50 text-left transition-colors hover:border-border hover:bg-muted/30"
           >
             <CardHeader>
-              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted text-foreground">
                 <Icon className="h-5 w-5" />
               </div>
               <CardTitle className="text-lg">{title}</CardTitle>

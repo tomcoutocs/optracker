@@ -204,7 +204,7 @@ export default function UserProfilePage() {
               <li key={(item.inventory as { card_id: string }).card_id} className="min-w-0">
                 {isOwnProfile ? (
                   <Link href="/inventory">
-                    <div className="relative w-full aspect-[63/88] rounded-lg overflow-hidden bg-muted group hover:ring-2 hover:ring-primary/50 transition-all">
+                    <div className="relative w-full aspect-[63/88] rounded-lg overflow-hidden bg-muted group hover:ring-1 hover:ring-border transition-all">
                       {(item.card as { image?: string }).image ? (
                         <Image
                           src={(item.card as { image: string }).image}

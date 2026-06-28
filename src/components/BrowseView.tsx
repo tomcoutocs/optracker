@@ -105,7 +105,7 @@ export function BrowseView() {
       />
 
       {isError && (
-        <p className="text-destructive text-sm">
+        <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">
           {error instanceof Error ? error.message : "Failed to load cards."}
         </p>
       )}

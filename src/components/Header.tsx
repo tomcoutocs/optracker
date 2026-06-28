@@ -48,13 +48,13 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
       <nav className="container mx-auto flex h-14 items-center justify-between gap-4 px-4">
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold text-lg tracking-tight text-foreground transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 font-semibold text-lg tracking-tight text-foreground transition-opacity hover:opacity-80"
         >
-          <span className="rounded bg-primary/10 px-1.5 py-0.5 font-bold text-primary">OP</span>
+          <span className="rounded-md border border-border bg-muted px-1.5 py-0.5 font-bold text-foreground">OP</span>
           <span>Tracker</span>
         </Link>
         <div className="flex items-center gap-1">
@@ -73,13 +73,13 @@ export function Header() {
                     className={cn(
                       "rounded-full px-4 py-2 text-sm font-medium transition-colors relative",
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                   >
                     {label}
                     {showBadge && (
-                      <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border border-border bg-foreground px-1 text-[10px] font-bold text-background">
                         {pendingCount > 9 ? "9+" : pendingCount}
                       </span>
                     )}

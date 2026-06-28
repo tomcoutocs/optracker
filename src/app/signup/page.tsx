@@ -84,7 +84,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <p className="text-destructive text-sm" role="alert">
+              <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground" role="alert">
                 {error}
               </p>
             )}
@@ -135,7 +135,7 @@ export default function SignupPage() {
             </Button>
             <p className="text-muted-foreground text-center text-sm">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary underline underline-offset-4">
+              <Link href="/login" className="text-foreground underline underline-offset-4 hover:text-muted-foreground">
                 Log in
               </Link>
             </p>

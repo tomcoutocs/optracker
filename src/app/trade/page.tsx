@@ -57,7 +57,7 @@ function TradeSideCard({
             </div>
           )}
           {quantity > 1 && (
-            <span className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-1.5 rounded-tl">
+            <span className="absolute bottom-0 right-0 bg-foreground text-background text-xs font-bold px-1.5 rounded-tl">
               ×{quantity}
             </span>
           )}
@@ -71,7 +71,7 @@ function TradeSideCard({
         type="button"
         variant="ghost"
         size="icon"
-        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive/80 text-destructive-foreground hover:bg-destructive opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="absolute -top-1 -right-1 h-5 w-5 rounded-full border border-border bg-muted text-muted-foreground hover:bg-accent hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"
         onClick={(e) => {
           e.stopPropagation();
           onRemove();
@@ -98,7 +98,7 @@ function InventoryCardThumb({
     <button
       type="button"
       onClick={onAdd}
-      className="w-full rounded border bg-card hover:border-primary hover:ring-2 hover:ring-primary/30 transition-all overflow-hidden text-left"
+      className="w-full rounded-lg border border-border bg-card hover:border-foreground/30 hover:bg-muted/40 transition-all overflow-hidden text-left"
     >
       <div className="relative w-full aspect-[3/4]">
         {card.image ? (
@@ -140,10 +140,10 @@ function TradeProposalCard({
   const isIncoming = trade.to_username && trade.is_pending_for_me;
   const statusColor =
     trade.status === "accepted"
-      ? "bg-green-500/20 text-green-600 dark:text-green-400"
+      ? "bg-muted text-foreground border border-border"
       : trade.status === "rejected"
-        ? "bg-red-500/20 text-red-600 dark:text-red-400"
-        : "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400";
+        ? "bg-muted/50 text-muted-foreground border border-border/60"
+        : "bg-accent text-muted-foreground border border-border/60";
 
   return (
     <Card>
@@ -153,7 +153,7 @@ function TradeProposalCard({
             <span className="font-medium">
               {isIncoming ? trade.from_username : trade.to_username}
             </span>
-            <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusColor}`}>
+            <span className={`rounded-md px-1.5 py-0.5 text-xs font-medium ${statusColor}`}>
               {trade.status}
             </span>
             <span className="text-xs text-muted-foreground">
@@ -491,7 +491,7 @@ export default function TradePage() {
             {pendingIncoming.length > 0 && (
               <span className={cn(
                 "ml-1.5 rounded-full px-1.5 py-0.5 text-xs font-medium",
-                view === "proposals" ? "bg-primary-foreground/25" : "bg-primary/20"
+                view === "proposals" ? "bg-primary-foreground/20" : "bg-muted"
               )}>
                 {pendingIncoming.length}
               </span>

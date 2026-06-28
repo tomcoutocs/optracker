@@ -139,7 +139,7 @@ export function ViewDeckModal({
           </div>
         )}
         {error && (
-          <p className="text-sm text-destructive py-4">
+          <p className="rounded-lg border border-border bg-muted/50 px-3 py-4 text-sm text-foreground">
             {error instanceof Error ? error.message : "Failed to load deck"}
           </p>
         )}
